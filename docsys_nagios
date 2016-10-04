@@ -1,0 +1,572 @@
+#!/bin/bash
+# Tim Bailey 12/23/13
+#set -x
+export PATH=/bin:/usr/bin:/etc:/usr/sbin:/sbin
+
+export REMIND_FILE=/tmp/docsys.remind.$$
+echo > $REMIND_FILE
+echo "Reminders:" >> $REMIND_FILE
+echo "------------" >> $REMIND_FILE
+
+exit_gracefully() {
+
+rm $REMIND_FILE
+exit 0
+
+}
+
+remind() {
+echo $1 >> $REMIND_FILE
+echo "---" >> $REMIND_FILE
+}
+
+trap "exit_gracefully" SIGTERM SIGINT
+export RELEASE=`uname -r|cut -f2 -d.`
+export SERIES="" # This is set in the OS kernel parms section
+
+dateit () {
+echo "Date:"
+echo "--------"
+date
+echo
+}
+
+modelit () {
+echo
+echo "<A NAME="Model">Model:</A>"
+echo "--------"
+uname -p -i -m
+}
+
+patch_level () {
+echo
+echo "<A NAME="patch_level">Patch level:</A>"
+echo "--------"
+cat /etc/issue.net
+}
+
+hostit () {
+echo
+echo "<A NAME="Hosts_it">Hosts it:</A>"
+echo "--------"
+cat /etc/hosts
+}
+
+sup_info () {
+echo
+echo "<A NAME="Support_info">Support info:</A>"
+echo "-------------"
+if [ -f /etc/support ] ; then
+   cat /etc/support
+else
+   echo The /etc/support file needs to be created.
+   remind "The /etc/support file needs to be created."
+fi
+
+}
+
+
+contact_info () {
+echo
+echo "<A NAME="Contact_info">Contact info:</A>"
+echo "-------------"
+if [ -f /etc/contacts ] ; then
+   cat /etc/contacts
+else
+   echo The /etc/contacts file needs to be created.
+   remind "The /etc/contacts file needs to be created."
+fi
+
+}
+
+sys_info () {
+# List The
+echo
+echo "<A NAME="System_info">System info:</A>"
+echo "---------------"
+hostname
+uname -a
+}
+
+umask_info () {
+# umask
+echo
+echo "<A NAME="Umask">umask:</A>"
+echo "--------"
+umask
+}
+
+hostname_info () {
+# hostname
+echo
+echo "<A NAME="Hostname">Hostname:</A>"
+echo "-----------"
+hostname
+}
+
+swap_info () {
+# Swap info
+echo
+echo "<A NAME="Swapinfo">Swapinfo:</A>"
+echo "-----------"
+free -t
+}
+
+mem_info () {
+# Memory Size
+echo
+echo "<A NAME="Real_Memory_Size">Real memory Size:</A>"
+echo "------------------"
+grep MemTotal /proc/meminfo
+}
+
+kernel_parms () {
+# OS kernel Parms
+echo
+echo "<A NAME="Kernel_Parms">Kernel Parms:</A>"
+echo "--------------"
+modprobe -all
+}
+
+system_start () {
+# System Startup
+echo
+echo "<A NAME="System_Startup_Shutdown">System Startup/Shutdown:</A>"
+echo "-------------------------"
+echo "listing of /etc/init showing all configuration files for upstartd"
+ls -l /etc/init/*
+}
+
+cron_info () {
+# crontab
+echo
+echo "<A NAME="Cron_stuff">Cron stuff:</A>"
+echo "root crontab:"
+echo "--------------------------------------"
+crontab -l
+echo
+echo "The allow and/or deny files will be shown followed by their contents (if any)."
+echo "------------------------------------------------------"
+case $RELEASE in
+        09)
+        find /usr/lib/cron -name "*.allow" -print -exec cat {} \;
+        find /usr/lib/cron -name "*.deny" -print -exec cat {} \;
+        ;;
+        10)
+        find /var/adm/cron -name "*.allow" -print -exec cat {} \;
+        find /var/adm/cron -name "*.deny" -print -exec cat {} \;
+        ;;
+        11)
+        find /var/adm/cron -name "*.allow" -print -exec cat {} \;
+        find /var/adm/cron -name "*.deny" -print -exec cat {} \;
+        ;;
+
+esac
+}
+
+ha_info () {
+# HA
+echo
+echo "<A NAME="Checking_for_HA_software">Checking for HA software:</A>"
+echo "-------------------------"
+echo "none"
+}
+
+lan_info () {
+# List the Lan Info.
+echo
+echo "<A NAME="Lan_Info">Lan Info:</A>"
+echo "----------------"
+ifconfig -a
+echo
+echo "/etc/network/interfaces parms"
+echo "------------------------------"
+cat /etc/network/interfaces
+
+# Netstat
+echo
+echo "<A NAME="Netstat_-i">Netstat -i:</A>"
+echo "---------------"
+netstat -i
+echo
+echo "<A NAME="Netstat_-r">Netstat -r:</A>"
+echo "---------------"
+netstat -r
+}
+
+x25_info () {
+echo
+echo "<A NAME="X25_Info">X25 Info:</A>"
+echo "-----------------"
+echo "Not applicable"
+echo
+}
+
+ots_info () {
+echo
+echo "<A NAME="OTS_Software">OTS Software?</A>"
+echo "------------------"
+echo "Not applicable"
+}
+
+ns_info () {
+# nsswitch.conf
+echo
+echo "<A NAME="nsswitch.conf">nsswitch.conf:</A>"
+if [ -f /etc/nsswitch.conf ] ; then
+        echo
+        echo "/etc/nsswitch.conf was found. Here it is:</A>"
+        echo "------------------------------------------"
+        cat /etc/nsswitch.conf
+else
+        echo "No /etc/nsswitch was found.</A>"
+fi
+}
+
+dns_client_info () {
+# DNS client config?
+echo
+echo "<A NAME="DNS_Client_Information_/etc/resolv.conf">DNS Client Information /etc/resolv.conf:</A>"
+echo "--------------------------------------------"
+if [ -f /etc/resolv.conf ] ; then
+        cat /etc/resolv.conf
+else
+        echo "Doubt it."
+        echo "/etc/resolv.conf does not exist on this system."
+fi
+}
+
+dns_server_info () {
+# DNS Server
+echo
+echo "<A NAME="DNS_Server">DNS Server?</A>"
+echo "------------"
+if [ -f /etc/named.boot ] ; then
+        echo "Might be. Here is named.boot"
+        cat /etc/named.boot
+        remind "Print any files listed above if necessary"
+else
+        echo "/etc/named.boot does not exist on this system."
+fi
+}
+
+inetd_info () {
+# inetd.sec
+echo
+echo "<A NAME="Inetd.sec">Inetd.sec:</A>"
+echo "--------------"
+case $RELEASE in
+        09)
+        if [ -f /usr/adm/inetd.sec ] ; then
+                cat /usr/adm/inetd.sec
+        else
+                echo "/usr/adm/inetd.sec was not found."
+        fi
+        ;;
+        10)
+        if [ -f /var/adm/inetd.sec ] ; then
+                cat /var/adm/inetd.sec
+        else
+                echo "/var/adm/inetd.sec was not found."
+        fi
+        ;;
+        11)
+        if [ -f /var/adm/inetd.sec ] ; then
+                cat /var/adm/inetd.sec
+        else
+                echo "/var/adm/inetd.sec was not found."
+        fi
+        ;;
+esac
+
+# inetd.conf
+echo
+echo "<A NAME="/etc/inetd.conf">/etc/inetd.conf:</A>"
+echo "---------------"
+echo "not applicable"
+}
+
+services_info () {
+# /etc/services
+echo
+echo "<A NAME="/etc/services">/etc/services:</A>"
+echo "-----------------"
+cat /etc/services
+}
+
+boot_info () {
+# /boot/grub/grub.cfg
+echo
+echo "<A NAME="/boot/grub/grub.cfg">/boot/grub/grub.cfg:</A>"
+echo "-----------------"
+cat /boot/grub/grub.cfg
+}
+
+bootpinfo () {
+# bootp
+echo
+echo "<A NAME="Looking_for_bootpd">Looking for bootpd:</A>"
+echo "---------------------"
+if ps -e|grep bootpd ; then
+        if [ -f /etc/bootptab ] ; then
+                echo "/etc/bootptab"
+                cat /etc/bootptab
+        else
+                echo "/etc/bootptab does not exist on this system."
+        fi
+else
+        echo "The bootp daemon is not running."
+fi
+}
+
+ntpd_info () {
+# xntpd
+echo
+echo "<A NAME="ntpd_config">ntpd config:</A>"
+echo "---------------------"
+if ps -ef|grep ntpd ; then
+        echo "ntpd looks to be running."
+        if [ -f /etc/ntp.conf ] ; then
+                echo "/etc/ntp.conf was found. May need to print it."
+                remind "/etc/ntp.conf was found. May need to print it."
+        else
+                echo "/etc/ntp.conf was not found."
+        fi
+else
+        echo "ntpd not running."
+
+fi
+}
+
+user_info () {
+echo
+echo "<A NAME="/etc/passwd">/etc/passwd:</A>"
+echo "---------------"
+cat /etc/passwd
+echo
+echo "<A NAME="/etc/group">/etc/group:</A>"
+echo "---------------"
+cat /etc/group
+}
+
+nis_info () {
+# NIS
+echo
+echo "<A NAME="Basic_NIS_info">Basic NIS info:</A>"
+echo "---------------------"
+if ps -e|grep "ypbind" ; then
+        echo "Look to be running NIS."
+        echo DOMAINNAME: `domainname`
+        echo "Running ypwhich, bound to:" `ypwhich`
+        if grep ^+ /etc/passwd ; then
+                echo "Looks like you are using NIS in /etc/passwd."
+                remind "Looks like you are using NIS in /etc/passwd."
+        fi
+        if grep ^+ /etc/group ; then
+                echo "Looks like you are using NIS in /etc/group."
+                remind "Looks like you are using NIS in /etc/group."
+        fi
+fi
+
+if ps -e|grep "ypserv" ; then
+        if ypcat -k ypservers|grep `hostname` ; then
+                echo "System is running ypserv and this system is in the ypservers map."
+                remind "System is running ypserv and this system is in the ypservers map."
+
+        else
+                echo "System is running ypserv, but not in ypservers map. Hmm... You may want to chec this out."
+                remind "System is running ypserv, but not in ypservers map. Hmm... You may want to chec this out."
+        fi
+
+fi
+
+if ps -e|grep "yppasswdd" ; then
+        echo "Look to be the NIS password daemon server."
+        remind "Look to be the NIS password daemon server."
+fi
+
+}
+
+nfs_info () {
+# NFS
+echo
+echo "<A NAME="Any_NFS_exports_or_automounter_stuff">Any NFS exports or automunter stuff:</A>"
+echo "---------------------"
+if [ -f /etc/exports ] ; then
+        echo "/etc/exports"
+        cat /etc/exports
+else
+        echo "/etc/exports not found."
+fi
+echo "Running ps to see if automounter is running now."
+if ps -e|grep automount ; then
+        echo "Automount looks to be running. The info for automount should be gathered."
+        remind "Automount looks to be running. The info for automount should be gathered."
+else
+        echo "Could not find the automounter running."
+fi
+}
+
+uucp_info () {
+# UUCP
+echo
+echo "<A NAME="Using_UUCP">Using UUCP?</A>"
+echo "--------------"
+echo "Here are the UUCP files (if any). I can't tell if you are using them."
+case $RELEASE in
+        09)
+        if [ -d /usr/lib/uucp ] ; then
+                ls /usr/lib/uucp/[A-Z]*
+                remind "UUCP config files found. Print them if needed."
+        else
+                echo "Could not find UUCP files in /usr/lib/uucp."
+        fi
+        ;;
+        10)
+        if [ -d /etc/uucp ] ; then
+                ls /etc/uucp
+                remind "UUCP config files found. Print them if needed."
+        else
+                echo "Could not find UUCP config files in /etc/uucp."
+        fi
+        ;;
+        11)
+        if [ -d /etc/uucp ] ; then
+                ls /etc/uucp
+                remind "UUCP config files found. Print them if needed."
+        else
+                echo "Could not find UUCP config files in /etc/uucp."
+        fi
+        ;;
+esac
+}
+
+mail_info () {
+# Sendmail
+echo
+echo "<A NAME="postfix_config">postfix config:</A>"
+echo "---------------------"
+ps -ef|grep -v grep | grep -i postfix | grep -i master
+echo
+echo "/etc/postfix/main.cf"
+cat /etc/postfix/main.cf
+}
+
+shells_info () {
+# /etc/shells
+echo
+echo "<A NAME="/etc/shells">/etc/shells:</A>"
+echo "--------------"
+if [ -f /etc/shells ] ; then
+        echo "/etc/shells was found, here it is:"
+        cat /etc/shells
+else
+        echo "No /etc/shells was found."
+fi
+}
+
+disk_info () {
+# List just the disk drives
+echo
+echo "<A NAME="The_system_Disk_Drives">The system Disk Drives:</A>"
+echo "--------------------------------------------------------------"
+cat /proc/scsi/scsi
+}
+
+lvmtab_info () {
+echo "Not Applicable"
+}
+
+fs_info () {
+# List the mounted file systems, and /etc/fstab
+echo
+echo "<A NAME="DF_Output">DF Output:</A>"
+echo "--------------------------------------------------------------"
+df -h
+echo
+        echo "/etc/fstab"
+        cat /etc/fstab
+}
+
+lvlnboot_info () {
+echo "Not Applicable"
+}
+
+vg_info () {
+# List the Volume Groups and Physical Volumes
+echo
+echo "<A NAME="Volume_Groups_Physical_logical_Volumes">Volume Groups Physical volumes:</A>"
+        /sbin/vgdisplay -v
+echo "check fdisk display"
+fdisk -l /dev/sda1
+}
+
+io_info () {
+# List all attached hardware
+echo
+echo "<A NAME="The_entire_IO_subsystem">The entire IO subsystem:</A>"
+echo "---------------------------------------------------"
+lshw
+}
+
+sw_info () {
+# List Installed SW
+echo
+echo "<A NAME="Installed_Software">Installed Software:</A>"
+echo "-----------------------------------------"
+dpkg --get-selections
+}
+
+print_info () {
+# List all print configuration
+echo
+echo "<A NAME="Printing"> Printing:</A>"
+echo "---------------------------------------------------"
+          lpstat -p
+}
+
+
+# Main Program
+dateit
+sys_info
+sup_info
+contact_info
+umask_info
+hostname_info
+modelit
+patch_level
+swap_info
+mem_info
+kernel_parms
+system_start
+cron_info
+ha_info
+lan_info
+x25_info
+ots_info
+ns_info
+dns_client_info
+dns_server_info
+inetd_info
+services_info
+boot_info
+bootpinfo
+hostit
+ntpd_info
+user_info
+nis_info
+nfs_info
+uucp_info
+mail_info
+shells_info
+disk_info
+lvmtab_info
+fs_info
+lvlnboot_info
+vg_info
+io_info
+sw_info
+print_info
+
+cat $REMIND_FILE
+exit_gracefully
