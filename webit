@@ -1,0 +1,59 @@
+#!/bin/bash
+#set -x
+# This script takes converts docsys output (or any output for that matter)
+# into html format. It takes two parameters. The first parm is a header for
+# the web page the second is the file it is converting.
+
+
+echo '<HTML>'
+echo '<body>'
+echo '<h1 align="center">System Documentation for ' `/bin/hostname` '</h1>'
+echo ''
+echo '<h2>Contents</h2>'
+echo ''
+echo '<menu>'
+echo '  <li><a HREF="#System_info">System info:</a></li>'
+echo '  <li><a HREF="#patch_level">patch level:</a></li>'
+echo '  <li><a HREF="#Umask">umask:</li>'
+echo '  <li><a HREF="#Hostname">Hostname:</li>'
+echo '  <li><a HREF="#Model">Model</a></li>'
+echo '  <li><a HREF="#Hosts_it">Hosts it</a></li>'
+echo '  <li><a HREF="#Swapinfo">Swapinfo</a></li>'
+echo '  <li><a HREF="#Real_Memory_Size">Real Memory Size</a></li>'
+echo '  <li><a HREF="#Kernel_Parms">Kernel Parms</a></li>'
+echo '  <li><a HREF="#System_Startup_Shutdown">System Startup/Shutdown</a></li>'
+echo '  <li><a HREF="#Cron_stuff">Cron stuff</a></li>'
+echo '  <li><a HREF="#Checking_for_HA_software">Checking for HA software</a></li>'
+echo '  <li><a HREF="#Lan_Info">Lan info:</a></li>'
+echo '  <li><a HREF="#Netstat_-i">Netstat -i</a></li>'
+echo '  <li><a HREF="#Netstat_-r">Netstat -r:</a></li>'
+echo '  <li><a HREF="#nsswitch.conf">nsswitch.conf:</a></li>'
+echo '  <li><a HREF="#DNS_Client_Information_/etc/resolv.conf">DNS Client Information /etc/resolv.conf:</a></li>'
+echo '  <li><a HREF="#DNS_Server">DNS Server:</a></li>'
+echo '  <li><a HREF="#Inetd.sec">Inetd.sec:</a></li>'
+echo '  <li><a HREF="#/etc/services">/etc/services:</a></li>'
+echo '  <li><a HREF="#/boot/grub/grub.cfg">/boot/grub/grub.cfg:</a></li>'
+echo '  <li><a HREF="#Looking_for_bootpd">Looking for bootpd:</a></li>'
+echo '  <li><a HREF="#ntpd_config">ntpd config:</a></li>'
+echo '  <li><a HREF="#/etc/passwd">/etc/passwd:</a></li>'
+echo '  <li><a HREF="#/etc/group">/etc/group:</a></li>'
+echo '  <li><a HREF="#Basic_NIS_info">Basic NIS info:</a></li>'
+echo '  <li><a HREF="#Any_NFS_exports_or_automounter_stuff">Any NFS exports or automounter stuff:</a></li>'
+echo '  <li><a HREF="#Using_UUCP">Using UUCP:</a></li>'
+echo '  <li><a HREF="#postfix_config">postfix config:</a></li>'
+echo '  <li><a HREF="#/etc/shells">/etc/shells:</a></li>'
+echo '  <li><a HREF="#The_system_Disk_Drives">The system Disk Drives:</a></li>'
+echo '  <li><a HREF="#DF_Output">DF Output:</a></li>'
+echo '  <li><a HREF="#Volume_Groups_Physical_logical_Volumes">Volume Groups Physical volumes:</a></li>'
+echo '  <li><a HREF="#The_entire_IO_subsystem">The entire IO subsystem:</a></li>'
+echo '  <li><a HREF="#Installed_Software">Installed Software:</a></li>'
+echo '  <li><a HREF="#Printing">Printing:</a></li>'
+echo '</menu>'
+echo '<p>'
+while read I
+do
+  echo "$I" '<br>'
+#done < "$2" 
+done 
+echo '</body>'
+echo '</HTML>'
